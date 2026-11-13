@@ -1,0 +1,2 @@
+/* Modular layout skin. Core visual tokens live in the global design system. */
+.catalog-grid { grid-auto-flow: row; }

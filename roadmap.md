@@ -1,0 +1,11 @@
+# TGVideo
+- [ ] Biblioteca cinematográfica, búsqueda, detalles y navegación móvil/TV.
+- [ ] Cuentas, perfiles e historial con Lovable Cloud.
+- [ ] Parser tgstorage y editor de captions con pruebas.
+- [ ] Skins en carruseles y cuadrícula.
+- [ ] Reproductor para fuentes compatibles.
+- [ ] Conexión real Telegram y TMDB: requiere credenciales y canales de prueba.
+- [ ] Streaming MKV, audio/ASS y reproductores externos: requiere fuente real y comprobación de codecs/dispositivos.
+- [ ] PIN y control parental protegido entre perfiles.
+- [ ] Preparación Android/TV; release firmado requiere repositorio, firma y dispositivo.
+- [ ] Verificación móvil/ordenador, pruebas y guardado.

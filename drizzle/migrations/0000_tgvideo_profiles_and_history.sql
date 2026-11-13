@@ -1,0 +1,17 @@
+CREATE TABLE public.profiles (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), account_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, name text NOT NULL, avatar text NOT NULL DEFAULT 'green', age_limit integer NOT NULL DEFAULT 18 CHECK (age_limit IN (0,7,12,16,18)), created_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
+GRANT ALL ON public.profiles TO service_role;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_profiles ON public.profiles FOR ALL TO authenticated USING (account_id = auth.uid()) WITH CHECK (account_id = auth.uid());
+CREATE TABLE public.playback_progress (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, channel_id text NOT NULL, message_id integer NOT NULL, "current_time" double precision NOT NULL DEFAULT 0 CHECK("current_time" >= 0), duration double precision NOT NULL DEFAULT 0 CHECK(duration >= 0), is_completed boolean NOT NULL DEFAULT false, updated_at timestamptz NOT NULL DEFAULT now(), UNIQUE(profile_id,channel_id,message_id));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.playback_progress TO authenticated;
+GRANT ALL ON public.playback_progress TO service_role;
+ALTER TABLE public.playback_progress ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_history ON public.playback_progress FOR ALL TO authenticated USING (EXISTS(SELECT 1 FROM public.profiles p WHERE p.id=profile_id AND p.account_id=auth.uid())) WITH CHECK (EXISTS(SELECT 1 FROM public.profiles p WHERE p.id=profile_id AND p.account_id=auth.uid()));
+CREATE TABLE public.metadata_cache (id text NOT NULL, account_id uuid NOT NULL, metadata jsonb NOT NULL DEFAULT '{}', updated_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(account_id,id));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.metadata_cache TO authenticated;
+GRANT ALL ON public.metadata_cache TO service_role;
+ALTER TABLE public.metadata_cache ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_metadata ON public.metadata_cache FOR ALL TO authenticated USING (account_id=auth.uid()) WITH CHECK(account_id=auth.uid());
+CREATE FUNCTION public.create_default_tgvideo_profile() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ BEGIN INSERT INTO public.profiles(account_id,name) VALUES(NEW.id,'Mi perfil'); RETURN NEW; END; $$;
+CREATE TRIGGER tgvideo_signup AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.create_default_tgvideo_profile();

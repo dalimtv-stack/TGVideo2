@@ -10,33 +10,154 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AjustesRouteImport } from './routes/ajustes'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BibliotecaRouteImport } from './routes/biblioteca'
+import { Route as BuscarRouteImport } from './routes/buscar'
+import { Route as PeliculasRouteImport } from './routes/peliculas'
+import { Route as PerfilesRouteImport } from './routes/perfiles'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SeriesRouteImport } from './routes/series'
+import { Route as TituloIdRouteImport } from './routes/titulo.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AjustesRoute = AjustesRouteImport.update({
+  id: '/ajustes',
+  path: '/ajustes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BibliotecaRoute = BibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuscarRoute = BuscarRouteImport.update({
+  id: '/buscar',
+  path: '/buscar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PeliculasRoute = PeliculasRouteImport.update({
+  id: '/peliculas',
+  path: '/peliculas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilesRoute = PerfilesRouteImport.update({
+  id: '/perfiles',
+  path: '/perfiles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeriesRoute = SeriesRouteImport.update({
+  id: '/series',
+  path: '/series',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TituloIdRoute = TituloIdRouteImport.update({
+  id: '/titulo/$id',
+  path: '/titulo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
+  '/auth': typeof AuthRoute
+  '/biblioteca': typeof BibliotecaRoute
+  '/buscar': typeof BuscarRoute
+  '/peliculas': typeof PeliculasRoute
+  '/perfiles': typeof PerfilesRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/series': typeof SeriesRoute
+  '/titulo/$id': typeof TituloIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
+  '/auth': typeof AuthRoute
+  '/biblioteca': typeof BibliotecaRoute
+  '/buscar': typeof BuscarRoute
+  '/peliculas': typeof PeliculasRoute
+  '/perfiles': typeof PerfilesRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/series': typeof SeriesRoute
+  '/titulo/$id': typeof TituloIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
+  '/auth': typeof AuthRoute
+  '/biblioteca': typeof BibliotecaRoute
+  '/buscar': typeof BuscarRoute
+  '/peliculas': typeof PeliculasRoute
+  '/perfiles': typeof PerfilesRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/series': typeof SeriesRoute
+  '/titulo/$id': typeof TituloIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ajustes'
+    | '/auth'
+    | '/biblioteca'
+    | '/buscar'
+    | '/peliculas'
+    | '/perfiles'
+    | '/reset-password'
+    | '/series'
+    | '/titulo/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ajustes'
+    | '/auth'
+    | '/biblioteca'
+    | '/buscar'
+    | '/peliculas'
+    | '/perfiles'
+    | '/reset-password'
+    | '/series'
+    | '/titulo/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/ajustes'
+    | '/auth'
+    | '/biblioteca'
+    | '/buscar'
+    | '/peliculas'
+    | '/perfiles'
+    | '/reset-password'
+    | '/series'
+    | '/titulo/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AjustesRoute: typeof AjustesRoute
+  AuthRoute: typeof AuthRoute
+  BibliotecaRoute: typeof BibliotecaRoute
+  BuscarRoute: typeof BuscarRoute
+  PeliculasRoute: typeof PeliculasRoute
+  PerfilesRoute: typeof PerfilesRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SeriesRoute: typeof SeriesRoute
+  TituloIdRoute: typeof TituloIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +169,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ajustes': {
+      id: '/ajustes'
+      path: '/ajustes'
+      fullPath: '/ajustes'
+      preLoaderRoute: typeof AjustesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/biblioteca': {
+      id: '/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof BibliotecaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buscar': {
+      id: '/buscar'
+      path: '/buscar'
+      fullPath: '/buscar'
+      preLoaderRoute: typeof BuscarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/peliculas': {
+      id: '/peliculas'
+      path: '/peliculas'
+      fullPath: '/peliculas'
+      preLoaderRoute: typeof PeliculasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfiles': {
+      id: '/perfiles'
+      path: '/perfiles'
+      fullPath: '/perfiles'
+      preLoaderRoute: typeof PerfilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/series': {
+      id: '/series'
+      path: '/series'
+      fullPath: '/series'
+      preLoaderRoute: typeof SeriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/titulo/$id': {
+      id: '/titulo/$id'
+      path: '/titulo/$id'
+      fullPath: '/titulo/$id'
+      preLoaderRoute: typeof TituloIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AjustesRoute: AjustesRoute,
+  AuthRoute: AuthRoute,
+  BibliotecaRoute: BibliotecaRoute,
+  BuscarRoute: BuscarRoute,
+  PeliculasRoute: PeliculasRoute,
+  PerfilesRoute: PerfilesRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SeriesRoute: SeriesRoute,
+  TituloIdRoute: TituloIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
