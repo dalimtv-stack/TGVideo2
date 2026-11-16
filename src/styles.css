@@ -2,6 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 @import "@lovable.dev/cloud-auth-js/styles.css";
+@import "./skins/skin.css";
 @theme inline {
   --font-sans: "Manrope", sans-serif;
   --color-background: var(--background);

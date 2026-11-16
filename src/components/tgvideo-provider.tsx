@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import skinConfig from "@/skins/skin.json";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type History = Database["public"]["Tables"]["playback_progress"]["Row"];
 type State = {
@@ -22,7 +23,7 @@ export function TGProvider({ children }: { children: ReactNode }) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [history, setHistory] = useState<History[]>([]);
-  const [skin, setSkin] = useState("cinema");
+  const [skin, setSkin] = useState(skinConfig.id);
   async function refresh() {
     const {
       data: { user: u },
@@ -70,18 +71,16 @@ export function TGProvider({ children }: { children: ReactNode }) {
       toast.info("Inicia sesión para guardar tu historial.");
       return;
     }
-    const { error } = await supabase
-      .from("playback_progress")
-      .upsert(
-        {
-          profile_id: profile.id,
-          channel_id: "demo",
-          message_id: id,
-          is_completed: completed,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "profile_id,channel_id,message_id" },
-      );
+    const { error } = await supabase.from("playback_progress").upsert(
+      {
+        profile_id: profile.id,
+        channel_id: "demo",
+        message_id: id,
+        is_completed: completed,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "profile_id,channel_id,message_id" },
+    );
     if (error) {
       toast.error("No se pudo guardar el estado.");
       return;

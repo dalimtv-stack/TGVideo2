@@ -28,3 +28,11 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application architecture
+- Keep content pages in TanStack file routes and shared navigation/providers in the root layout, so refresh and client navigation share one shell.
+- Keep tgstorage rules in a browser-safe pure module with concrete unit tests, so integration and upload forms use the same rules.
+- Keep downloaded media in CDN asset pointers, so binaries do not inflate source history.
+- Initialize ArtPlayer dynamically inside an effect, so SSR never evaluates DOM-dependent playback code.
+- Keep Android packaging separate and require an explicit published HTTPS origin, so wrappers never load a private preview by default.
+- Never return Telegram application secrets to the browser; use authenticated server-side transport before enabling login.
