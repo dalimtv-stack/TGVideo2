@@ -2,9 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { Star, Check } from "lucide-react";
 import type { Title } from "@/lib/catalog";
 import { useTG } from "./tgvideo-provider";
+import feature from "@/assets/desert-feature.jpg";
 export function TitleCard({ item, wide = false }: { item: Title; wide?: boolean }) {
-  const { history } = useTG();
-  const watched = history.some((h) => h.message_id === item.id && h.is_completed);
+  const { entryFor } = useTG();
+  const watched = Boolean(entryFor(item)?.is_completed);
   return (
     <Link
       to="/titulo/$id"
@@ -12,9 +13,15 @@ export function TitleCard({ item, wide = false }: { item: Title; wide?: boolean 
       className={`title-card ${wide ? "wide" : ""}`}
     >
       <div className="poster-wrap">
-        <img src={item.image} alt={item.title} width={500} height={750} loading="lazy" />
+        <img src={item.image || feature} alt={item.title} width={500} height={750} loading="lazy" />
         {wide && <div className="wide-title">{item.original}</div>}
-        <span className="quality-badge">{item.type === "series" ? "SERIE" : "4K"}</span>
+        <span className="quality-badge">
+          {item.type === "series"
+            ? `SERIE${item.episodes ? ` · ${item.episodes.length}` : ""}`
+            : item.source
+              ? "TG"
+              : "4K"}
+        </span>
         {watched && (
           <span className="watched-badge">
             <Check size={14} />
@@ -30,12 +37,12 @@ export function TitleCard({ item, wide = false }: { item: Title; wide?: boolean 
         <h3>{item.title}</h3>
         {wide ? (
           <span>
-            {item.type === "series" ? "T1 · E3" : "Película"} <span className="dot">·</span>{" "}
+            {item.type === "series" ? "Serie" : "Película"} <span className="dot">·</span>{" "}
             {item.progress}% visto
           </span>
         ) : (
           <span>
-            {item.year}
+            {item.year || item.group}
             <span className="dot">·</span>
             {item.genre}
             <span className="card-rating">

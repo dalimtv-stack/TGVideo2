@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { lazy, Suspense, useState } from "react";
 import { ClientOnly } from "@tanstack/react-router";
-import { Grid2X2, Rows3, Send, LogOut, Upload, Play } from "lucide-react";
+import { Grid2X2, Rows3, LogOut, Upload, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTG } from "@/components/tgvideo-provider";
+import { TelegramConnect } from "@/components/telegram-connect";
 import { supabase } from "@/integrations/supabase/client";
 import { pageHead } from "@/lib/page-head";
 import { safeCaption } from "@/lib/tgstorage";
@@ -44,22 +45,9 @@ function Settings() {
       <span className="eyebrow">A TU MANERA</span>
       <h1>Ajustes</h1>
       <div className="settings-sections">
-        <section className="settings-section">
-          <h2>Telegram</h2>
-          <p>Conecta tus canales para descubrir tu biblioteca personal.</p>
-          <div className="settings-row">
-            <span className="status-note">
-              Sin conectar · credenciales de aplicación pendientes
-            </span>
-            <Button disabled>
-              <Send /> Conectar Telegram
-            </Button>
-          </div>
-          <p className="status-note">
-            La conexión requiere configurar de forma segura las credenciales de la aplicación
-            Telegram. Nunca compartas códigos ni contraseñas en el chat.
-          </p>
-        </section>
+        <ClientOnly fallback={<p>Cargando conexión…</p>}>
+          <TelegramConnect />
+        </ClientOnly>
         <section className="settings-section">
           <h2>Apariencia</h2>
           <p>Una biblioteca con tu estilo.</p>

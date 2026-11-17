@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { TitleCard } from "@/components/title-card";
 import { Button } from "@/components/ui/button";
-import { catalog } from "@/lib/catalog";
 import { useTG } from "@/components/tgvideo-provider";
 import { pageHead } from "@/lib/page-head";
 export const Route = createFileRoute("/buscar")({
@@ -13,12 +12,12 @@ export const Route = createFileRoute("/buscar")({
 function SearchPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
-  const { profile } = useTG();
+  const { profile, items: catalog } = useTG();
   const results = catalog.filter(
     (i) =>
       (!profile || i.age <= profile.age_limit) &&
       (filter === "all" || i.type === filter) &&
-      `${i.title} ${i.director} ${i.cast}`.toLowerCase().includes(query.toLowerCase()),
+      `${i.title} ${i.director} ${i.cast} ${i.group}`.toLowerCase().includes(query.toLowerCase()),
   );
   return (
     <main className="page-content">

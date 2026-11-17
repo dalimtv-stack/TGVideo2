@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronLeft, ChevronRight, Play, Plus, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { catalog, type Title } from "@/lib/catalog";
+import type { Title } from "@/lib/catalog";
 import { TitleCard } from "./title-card";
 import { useTG } from "./tgvideo-provider";
 import feature from "@/assets/desert-feature.jpg";
@@ -57,66 +57,52 @@ function Rail({
   );
 }
 export function CatalogView({ type }: { type?: "movie" | "series" }) {
-  const { user, profile, history, mark } = useTG();
-  const items = catalog.filter(
+  const { user, profile, entryFor, mark, items: all, connected } = useTG();
+  const items = all.filter(
     (i) => (!type || i.type === type) && (!profile || i.age <= profile.age_limit),
   );
   const hero = items[0];
-  const saved = history.some((h) => h.message_id === 1 && h.is_completed);
+  const saved = Boolean(hero && entryFor(hero)?.is_completed);
   return (
     <main>
       {!type && hero && (
         <section className="feature">
           <img
             className="feature-image"
-            src={feature}
-            alt="Un viajero ante las dunas de un planeta desértico"
+            src={hero.backdrop || feature}
+            alt={hero.title}
             width={1920}
             height={1024}
           />
           <div className="feature-shade" />
           <div className="feature-content">
             <div className="feature-kicker">
-              <span /> EL DESTACADO DE HOY
+              <span /> {connected ? "DE TUS CANALES" : "EL DESTACADO DE HOY"}
             </div>
-            <h1>
-              DUNE<span>PARTE DOS</span>
-            </h1>
+            <h1>{hero.title.toUpperCase()}</h1>
             <div className="feature-meta">
               <span className="rating">
-                <Star size={15} fill="currentColor" /> 8.5
+                <Star size={15} fill="currentColor" /> {hero.rating}
               </span>
-              <span>2024</span>
-              <span className="age-label">+12</span>
-              <span>2 h 46 min</span>
-              <span className="quality-label">4K UHD</span>
+              {hero.year > 0 && <span>{hero.year}</span>}
+              <span className="age-label">{hero.age ? `+${hero.age}` : "TP"}</span>
+              {hero.duration && <span>{hero.duration}</span>}
             </div>
-            <p>
-              El destino de todo un universo está en sus manos. Paul Atreides se une a los Fremen en
-              un viaje de venganza, amor y poder.
-            </p>
+            <p>{hero.synopsis.slice(0, 220)}</p>
             <div className="feature-buttons">
               <Button size="lg" asChild>
-                <Link to="/titulo/$id" params={{ id: "1" }}>
-                  <Play fill="currentColor" /> Ver película
+                <Link to="/titulo/$id" params={{ id: String(hero.id) }}>
+                  <Play fill="currentColor" />{" "}
+                  {hero.type === "series" ? "Ver serie" : "Ver película"}
                 </Link>
               </Button>
-              <Button variant="secondary" size="lg" onClick={() => void mark(1, !saved)}>
+              <Button variant="secondary" size="lg" onClick={() => void mark(hero, !saved)}>
                 {saved ? <Check /> : <Plus />} {saved ? "Visto" : "Marcar como visto"}
               </Button>
             </div>
             <div className="feature-tags">
-              Ciencia ficción <span>·</span> Aventura <span>·</span> Denis Villeneuve
+              {hero.genre} <span>·</span> {hero.group}
             </div>
-          </div>
-          <div className="feature-pagination">
-            <span className="selected" />
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="feature-number">
-            01 <span>/ 04</span>
           </div>
         </section>
       )}
@@ -125,7 +111,9 @@ export function CatalogView({ type }: { type?: "movie" | "series" }) {
           <div className="page-heading">
             <span className="eyebrow">TU UNIVERSO, A UN PLAY</span>
             <h1>{type === "movie" ? "Películas" : "Series"}</h1>
-            <p>{items.length} títulos en el catálogo de muestra</p>
+            <p>
+              {items.length} títulos {connected ? "en tus canales" : "en el catálogo de muestra"}
+            </p>
           </div>
         )}
         {!type && (
@@ -140,7 +128,8 @@ export function CatalogView({ type }: { type?: "movie" | "series" }) {
                 </p>
               </div>
               <Link to="/ajustes" className="connection-pill">
-                <span /> Conectar Telegram <ArrowRight size={14} />
+                <span /> {connected ? "Telegram conectado" : "Conectar Telegram"}{" "}
+                <ArrowRight size={14} />
               </Link>
             </div>
             <Rail

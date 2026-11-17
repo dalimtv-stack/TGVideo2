@@ -6,8 +6,15 @@ import oppenheimer from "@/assets/oppenheimer.asset.json";
 import lastofus from "@/assets/lastofus.asset.json";
 import arrival from "@/assets/arrival.asset.json";
 import dark from "@/assets/dark.asset.json";
+export type Episode = {
+  channelId: string;
+  messageId: number;
+  name: string;
+  size: number;
+  mime: string;
+};
 export type Title = {
-  id: number;
+  id: number | string;
   title: string;
   original: string;
   type: "movie" | "series";
@@ -21,7 +28,11 @@ export type Title = {
   director: string;
   cast: string;
   group: string;
-  progress?: number;
+  progress?: number | undefined;
+  tmdbId?: string;
+  backdrop?: string;
+  episodes?: Episode[];
+  source?: "telegram";
 };
 export const catalog: Title[] = [
   {

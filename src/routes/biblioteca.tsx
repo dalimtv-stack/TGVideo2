@@ -4,22 +4,20 @@ import { Bookmark } from "lucide-react";
 import { TitleCard } from "@/components/title-card";
 import { Button } from "@/components/ui/button";
 import { useTG } from "@/components/tgvideo-provider";
-import { catalog } from "@/lib/catalog";
 import { pageHead } from "@/lib/page-head";
 export const Route = createFileRoute("/biblioteca")({
   head: () => pageHead("Mi biblioteca", "Consulta tus películas vistas y tu historial personal."),
   component: Library,
 });
 function Library() {
-  const { user, history, profile } = useTG();
+  const { user, profile, entryFor, items: catalog } = useTG();
   const [tab, setTab] = useState("all");
   const items = catalog.filter(
     (i) =>
       (!profile || i.age <= profile.age_limit) &&
-      history.some(
-        (h) =>
-          h.message_id === i.id &&
-          (tab === "all" || (tab === "watched" ? h.is_completed : !h.is_completed)),
+      ((h) =>
+        Boolean(h) && (tab === "all" || (tab === "watched" ? h!.is_completed : !h!.is_completed)))(
+        entryFor(i),
       ),
   );
   return (
