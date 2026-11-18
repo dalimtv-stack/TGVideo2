@@ -1,5 +1,5 @@
 import { createFileRoute, Link, ClientOnly } from "@tanstack/react-router";
-import { lazy, Suspense, useRef, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Play, Check, Plus, Star, ArrowLeft, X } from "lucide-react";
 import { toast } from "sonner";
 import { catalog, type Episode } from "@/lib/catalog";
@@ -27,9 +27,13 @@ function Detail() {
   const { id } = Route.useParams();
   const { mark, entryFor, profile, items, history, saveProgress } = useTG();
   const item = items.find((i) => String(i.id) === id);
-  const [playing, setPlaying] = useState<{ ep: Episode; url: string; start: number } | null>(null);
-  const [loading, setLoading] = useState<{ ep: Episode; pct: number } | null>(null);
-  const abort = useRef<AbortController | null>(null);
+  const [playing, setPlaying] = useState<{
+    ep: Episode;
+    url: string;
+    start: number;
+    close: () => void;
+  } | null>(null);
+  const [loading, setLoading] = useState<Episode | null>(null);
   if (!item || (profile && item.age > profile.age_limit))
     return (
       <main className="page-content">
@@ -43,22 +47,22 @@ function Detail() {
   const epEntry = (ep: Episode) =>
     history.find((h) => h.channel_id === ep.channelId && h.message_id === ep.messageId);
   async function play(ep: Episode) {
-    abort.current?.abort();
-    const ctrl = new AbortController();
-    abort.current = ctrl;
-    setLoading({ ep, pct: 0 });
+    setLoading(ep);
     try {
-      const { downloadVideo } = await import("@/lib/telegram-client");
-      const url = await downloadVideo(ep, (pct) => setLoading({ ep, pct }), ctrl.signal);
-      if (playing) URL.revokeObjectURL(playing.url);
+      const { openVideo } = await import("@/lib/telegram-client");
+      const stream = await openVideo(ep);
+      playing?.close();
       const h = epEntry(ep);
-      setPlaying({ ep, url, start: h && !h.is_completed ? Number(h.current_time) : 0 });
+      setPlaying({ ep, ...stream, start: h && !h.is_completed ? Number(h.current_time) : 0 });
     } catch (e) {
-      if (!ctrl.signal.aborted)
-        toast.error(e instanceof Error ? e.message : "No se pudo descargar el vídeo.");
+      toast.error(e instanceof Error ? e.message : "No se pudo abrir el vídeo.");
     } finally {
       setLoading(null);
     }
+  }
+  function stop() {
+    playing?.close();
+    setPlaying(null);
   }
   return (
     <main className="page-content">
@@ -71,7 +75,7 @@ function Detail() {
         <section className="settings-section">
           <div className="settings-row">
             <strong>{playing.ep.name}</strong>
-            <Button variant="ghost" size="icon" title="Cerrar" onClick={() => setPlaying(null)}>
+            <Button variant="ghost" size="icon" title="Cerrar" onClick={stop}>
               <X />
             </Button>
           </div>
@@ -130,17 +134,7 @@ function Detail() {
               {watched ? "Marcar como no visto" : "Marcar como visto"}
             </Button>
           </div>
-          {loading && (
-            <div className="status-note">
-              Descargando desde Telegram {loading.pct}% · {formatSize(loading.ep.size)}{" "}
-              <Button variant="ghost" size="sm" onClick={() => abort.current?.abort()}>
-                Cancelar
-              </Button>
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${loading.pct}%` }} />
-              </div>
-            </div>
-          )}
+          {loading && <p className="status-note">Conectando con Telegram…</p>}
           <div className="detail-data">
             {item.director && (
               <div>

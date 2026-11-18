@@ -233,11 +233,14 @@ export async function scanLibrary(onStatus: (s: string) => void): Promise<Title[
   return list;
 }
 
-export async function downloadVideo(
-  ep: Episode,
-  onProgress: (pct: number) => void,
-  signal: AbortSignal,
-) {
+// Reproducción por streaming: el vídeo empieza en segundos y se pueden hacer saltos,
+// sin descargar el archivo completo.
+export async function openVideo(ep: Episode) {
+  const { streamingAvailable, openStream } = await import("./telegram-stream");
+  if (!(await streamingAvailable()))
+    throw new Error(
+      "Este navegador no permite reproducir en streaming. Prueba con Chrome, Edge o Firefox.",
+    );
   const c = await getClient();
   if (!entitiesLoaded) {
     await c.getDialogs({ limit: 500 });
@@ -246,14 +249,6 @@ export async function downloadVideo(
   const entity = await c.getEntity(BigInt(ep.channelId) as unknown as string);
   const [msg] = await c.getMessages(entity, { ids: [ep.messageId] });
   if (!msg?.document) throw new Error("El mensaje ya no contiene el vídeo.");
-  const chunks: BlobPart[] = [];
-  let received = 0;
-  for await (const chunk of c.iterDownload({ file: msg.media, requestSize: 512 * 1024 })) {
-    if (signal.aborted) throw new Error("Descarga cancelada");
-    chunks.push(chunk as BlobPart);
-    received += chunk.length;
-    onProgress(Math.min(100, Math.round((received / ep.size) * 100)));
-  }
-  const mime = ep.mime === "video/x-matroska" ? "video/webm" : ep.mime;
-  return URL.createObjectURL(new Blob(chunks, { type: mime }));
+  const mime = ep.mime === "video/x-matroska" ? "video/webm" : ep.mime || "video/mp4";
+  return openStream({ client: c, media: msg.media, size: ep.size, mime, name: ep.name });
 }
