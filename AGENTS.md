@@ -36,3 +36,5 @@ use the editor.
 - Initialize ArtPlayer dynamically inside an effect, so SSR never evaluates DOM-dependent playback code.
 - Keep Android packaging separate and require an explicit published HTTPS origin, so wrappers never load a private preview by default.
 - Never return Telegram application secrets to the browser; use authenticated server-side transport before enabling login.
+- Run GramJS only in the browser via dynamic import with client-only Node shims in vite.config.ts, and keep each user's Telegram api_id/api_hash/session in their own device storage, so credentials never touch the server or repository.
+- Derive the catalog from the scanned Telegram library when present and fall back to sample titles otherwise, so every view shares one source of items.

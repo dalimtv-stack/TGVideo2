@@ -31,11 +31,19 @@ async function getClient() {
   const cfg = loadConfig();
   if (!cfg.apiId || !cfg.apiHash) throw new Error("Introduce tu API ID y API HASH de Telegram.");
   if (client) return client;
+  const g = globalThis as unknown as { Buffer?: unknown; process?: unknown };
+  if (!g.Buffer) g.Buffer = (await import("buffer")).Buffer;
+  if (!g.process) g.process = { env: {}, browser: true, version: "" };
   const { TelegramClient } = await import("telegram");
   const { StringSession } = await import("telegram/sessions");
   client = new TelegramClient(new StringSession(cfg.session), Number(cfg.apiId), cfg.apiHash, {
     connectionRetries: 3,
     useWSS: true,
+    deviceModel: "TGVideo Web",
+    systemVersion: "1.0",
+    appVersion: "1.0",
+    langCode: "es",
+    systemLangCode: "es",
   });
   await client.connect();
   return client;

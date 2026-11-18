@@ -13,3 +13,12 @@
 - [x] Preparación del proceso Android/TV y GitHub Actions.
 - [ ] Compilación y distribución Android: requiere URL publicada, repositorio, firma y dispositivo de prueba.
 - [x] Búsqueda y captions comprobados en navegador, carátulas cargadas; pruebas y compilación correctas.
+
+## Conexión real
+- [x] Conectar Telegram con API ID/HASH, teléfono, código y 2FA (sesión en el dispositivo)
+- [x] Escanear canales ::tgstorage y construir películas/series con episodios
+- [x] Clave TMDB con carátulas, sinopsis y reparto (caché local)
+- [x] Reproducir desde Telegram con progreso y reanudación sincronizados
+- [ ] Probar con cuenta y canales reales (necesita las credenciales del usuario)
+- [ ] Streaming progresivo sin descarga completa (los archivos grandes se descargan antes de reproducir)
+- [ ] PIN parental de 4 dígitos

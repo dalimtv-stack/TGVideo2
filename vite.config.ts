@@ -8,11 +8,37 @@
 // hosting already compresses at the edge.
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { createRequire } from "node:module";
+import path from "node:path";
+
+const require = createRequire(import.meta.url);
+const telegramDir = path.dirname(require.resolve("telegram/package.json"));
+// GramJS (Telegram MTProto) runs only in the browser; map its Node built-ins to the
+// browser shims GramJS itself ships with, without touching server-side resolution.
+const gramShims: Record<string, string> = {
+  crypto: path.join(telegramDir, "crypto/crypto.js"),
+  util: require.resolve("util/"),
+  events: require.resolve("events/"),
+  os: require.resolve("os-browserify/browser.js"),
+  path: require.resolve("path-browserify"),
+};
 
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    plugins: [
+      {
+        name: "tgvideo-gramjs-browser-shims",
+        enforce: "pre",
+        applyToEnvironment: (env) => env.name === "client",
+        resolveId(source) {
+          return gramShims[source] ?? null;
+        },
+      },
+    ],
   },
 });
