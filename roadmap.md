@@ -20,5 +20,5 @@
 - [x] Clave TMDB con carátulas, sinopsis y reparto (caché local)
 - [x] Reproducir desde Telegram con progreso y reanudación sincronizados
 - [ ] Probar con cuenta y canales reales (necesita las credenciales del usuario)
-- [ ] Streaming progresivo sin descarga completa (los archivos grandes se descargan antes de reproducir)
+- [x] Streaming por trozos con saltos (sin descarga completa)
 - [ ] PIN parental de 4 dígitos
