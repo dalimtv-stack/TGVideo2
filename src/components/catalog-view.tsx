@@ -61,7 +61,7 @@ export function CatalogView({ type }: { type?: "movie" | "series" }) {
   const items = all.filter(
     (i) => (!type || i.type === type) && (!profile || i.age <= profile.age_limit),
   );
-  const hero = items[0];
+  const hero = items.find((i) => i.backdrop) || items.find((i) => i.image) || items[0];
   const saved = Boolean(hero && entryFor(hero)?.is_completed);
   return (
     <main>
@@ -69,7 +69,7 @@ export function CatalogView({ type }: { type?: "movie" | "series" }) {
         <section className="feature">
           <img
             className="feature-image"
-            src={hero.backdrop || feature}
+            src={hero.backdrop || hero.image || feature}
             alt={hero.title}
             width={1920}
             height={1024}

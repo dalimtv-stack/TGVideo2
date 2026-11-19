@@ -1123,3 +1123,8 @@
   color: var(--muted-foreground);
   font-size: 11px;
 }
+
+.feature-content h1,
+.detail-layout h1 {
+  overflow-wrap: anywhere;
+}

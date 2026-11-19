@@ -93,13 +93,20 @@ function Detail() {
         </section>
       )}
       <div className="detail-layout">
-        <img
-          className="detail-poster"
-          src={item.image || feature}
-          alt={item.title}
-          width={500}
-          height={750}
-        />
+        {item.image || !item.source ? (
+          <img
+            className="detail-poster"
+            src={item.image || feature}
+            alt={item.title}
+            width={500}
+            height={750}
+          />
+        ) : (
+          <div className="detail-poster poster-fallback">
+            <span>{item.title}</span>
+            {item.year > 0 && <small>{item.year}</small>}
+          </div>
+        )}
         <div>
           <span className="eyebrow">
             {item.type === "series" ? "SERIE" : "PELÍCULA"} ·{" "}
