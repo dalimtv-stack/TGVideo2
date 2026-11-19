@@ -13,7 +13,20 @@ export function TitleCard({ item, wide = false }: { item: Title; wide?: boolean 
       className={`title-card ${wide ? "wide" : ""}`}
     >
       <div className="poster-wrap">
-        <img src={item.image || feature} alt={item.title} width={500} height={750} loading="lazy" />
+        {item.image || !item.source ? (
+          <img
+            src={item.image || feature}
+            alt={item.title}
+            width={500}
+            height={750}
+            loading="lazy"
+          />
+        ) : (
+          <div className="poster-fallback">
+            <span>{item.title}</span>
+            {item.year > 0 && <small>{item.year}</small>}
+          </div>
+        )}
         {wide && <div className="wide-title">{item.original}</div>}
         <span className="quality-badge">
           {item.type === "series"

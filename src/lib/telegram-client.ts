@@ -1,5 +1,5 @@
 // Solo navegador: GramJS se importa dinámicamente para que SSR nunca lo evalúe.
-import { parseCaption, parseChannel, sectionFor } from "./tgstorage";
+import { parseCaption, parseChannel, parseFileName, sectionFor } from "./tgstorage";
 import type { Title, Episode } from "./catalog";
 
 const KEY = "tgvideo.config";
@@ -114,15 +114,42 @@ function ageFrom(v?: string) {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-async function tmdb(kind: "movie" | "tv", id: string) {
+function tmdbFetch(path: string, params: Record<string, string>) {
   const key = loadConfig().tmdbKey;
-  if (!key || !id) return null;
-  const cacheKey = `tgvideo.tmdb.${kind}.${id}`;
+  const bearer = key.length > 40;
+  const q = new URLSearchParams({
+    language: "es-ES",
+    ...params,
+    ...(bearer ? {} : { api_key: key }),
+  });
+  return fetch(
+    `https://api.themoviedb.org/3/${path}?${q}`,
+    bearer ? { headers: { Authorization: `Bearer ${key}` } } : undefined,
+  );
+}
+async function tmdb(kind: "movie" | "tv", id: string, query: string, year: number) {
+  if (!loadConfig().tmdbKey) return null;
+  const cacheKey = `tgvideo.tmdb2.${kind}.${id || `${query}|${year}`}`;
   const cached = localStorage.getItem(cacheKey);
   if (cached) return JSON.parse(cached);
-  const bearer = key.length > 40;
-  const url = `https://api.themoviedb.org/3/${kind}/${id}?language=es-ES&append_to_response=credits${bearer ? "" : `&api_key=${key}`}`;
-  const r = await fetch(url, bearer ? { headers: { Authorization: `Bearer ${key}` } } : undefined);
+  let tmdbId = id;
+  if (!tmdbId && query) {
+    const params: Record<string, string> = { query };
+    if (year) params[kind === "tv" ? "first_air_date_year" : "year"] = String(year);
+    let r = await tmdbFetch(`search/${kind}`, params);
+    let hit = r.ok ? (await r.json()).results?.[0] : null;
+    if (!hit && year) {
+      r = await tmdbFetch(`search/${kind}`, { query });
+      hit = r.ok ? (await r.json()).results?.[0] : null;
+    }
+    if (!hit) {
+      localStorage.setItem(cacheKey, "null");
+      return null;
+    }
+    tmdbId = String(hit.id);
+  }
+  if (!tmdbId) return null;
+  const r = await tmdbFetch(`${kind}/${tmdbId}`, { append_to_response: "credits" });
   if (!r.ok) return null;
   const data = await r.json();
   localStorage.setItem(cacheKey, JSON.stringify(data));
@@ -147,7 +174,7 @@ export async function scanLibrary(onStatus: (s: string) => void): Promise<Title[
     const channel = parseChannel(d.title || "");
     if (!channel) continue;
     const channelId = String(d.id);
-    const series = /serie/i.test(channel.category);
+    const seriesChannel = /serie/i.test(channel.category);
     onStatus(`Leyendo ${d.title}…`);
     for await (const m of c.iterMessages(d.entity, { limit: 3000 })) {
       const doc = m.document;
@@ -159,30 +186,35 @@ export async function scanLibrary(onStatus: (s: string) => void): Promise<Title[
       if (!String(doc.mimeType).startsWith("video/") && !VIDEO_EXT.test(fileName)) continue;
       const caption: string = m.message || "";
       const f = parseCaption(caption);
-      const section = sectionFor(channel, caption);
+      const name = f["Nombre de archivo"] || fileName || `Mensaje ${m.id}`;
+      const info = parseFileName(name);
+      const hasSection = Boolean(f["Sección"]) || !channel.macro;
+      const series = seriesChannel || info.episode !== null;
+      // Serie: agrupar por Sección (o canal dedicado); si no hay, por el nombre limpio del archivo.
+      const showName = hasSection ? sectionFor(channel, caption) : info.title;
       const episode: Episode = {
         channelId,
         messageId: m.id,
-        name: f["Nombre de archivo"] || fileName || `Mensaje ${m.id}`,
+        name:
+          info.episode !== null
+            ? `T${info.season} · E${String(info.episode).padStart(2, "0")}`
+            : name.replace(/\.[^.]+$/, "").replace(/[._]+/g, " "),
         size: Number(doc.size),
         mime: String(doc.mimeType),
       };
-      const key = series ? `${channelId}_${section}` : `${channelId}_${m.id}`;
+      const key = series ? `${channelId}_${showName.toLowerCase()}` : `${channelId}_${m.id}`;
       const existing = titles.get(key);
       if (existing) {
         existing.episodes!.push(episode);
         continue;
       }
+      const title = series ? showName : info.title;
       titles.set(key, {
-        id: key,
-        title: series
-          ? section
-          : f["Nombre de archivo"]?.replace(/\.[^.]+$/, "").replace(/_/g, " ") ||
-            fileName ||
-            section,
-        original: (series ? section : fileName).toUpperCase(),
+        id: key.replace(/[^a-z0-9_-]+/gi, "-"),
+        title,
+        original: title.toUpperCase(),
         type: series ? "series" : "movie",
-        year: 0,
+        year: info.year || 0,
         rating: f["Puntuación"] || "–",
         age: ageFrom(f["Edad"]),
         genre: channel.category,
@@ -199,25 +231,43 @@ export async function scanLibrary(onStatus: (s: string) => void): Promise<Title[
     }
   }
   const list = [...titles.values()];
-  onStatus("Completando datos con TMDB…");
-  for (const t of list) {
+  for (const t of list)
     t.episodes!.sort((a, b) => a.name.localeCompare(b.name, "es", { numeric: true }));
+  return enrichLibrary(list, onStatus);
+}
+
+// Completa carátula, fondo, sinopsis y reparto desde TMDB (por ID o buscando por título).
+export async function enrichLibrary(list: Title[], onStatus: (s: string) => void = () => {}) {
+  if (!loadConfig().tmdbKey) return list;
+  let done = 0;
+  for (const t of list) {
+    onStatus(`Buscando carátulas en TMDB… ${++done}/${list.length}`);
     try {
-      const info = await tmdb(t.type === "series" ? "tv" : "movie", t.tmdbId || "");
+      const info = await tmdb(
+        t.type === "series" ? "tv" : "movie",
+        t.tmdbId || "",
+        t.title,
+        t.year,
+      );
       if (!info) continue;
+      t.tmdbId = String(info.id);
       t.title = info.title || info.name || t.title;
+      t.original = (info.original_title || info.original_name || t.title).toUpperCase();
       t.synopsis = info.overview || t.synopsis;
-      t.image = info.poster_path ? `https://image.tmdb.org/t/p/w500${info.poster_path}` : t.image;
-      t.backdrop = info.backdrop_path
-        ? `https://image.tmdb.org/t/p/w1280${info.backdrop_path}`
-        : "";
-      t.year = Number((info.release_date || info.first_air_date || "").slice(0, 4)) || 0;
-      t.rating = info.vote_average ? info.vote_average.toFixed(1) : t.rating;
+      if (info.poster_path) t.image = `https://image.tmdb.org/t/p/w500${info.poster_path}`;
+      if (info.backdrop_path) t.backdrop = `https://image.tmdb.org/t/p/w1280${info.backdrop_path}`;
+      t.year = Number((info.release_date || info.first_air_date || "").slice(0, 4)) || t.year;
+      if (info.vote_average) t.rating = info.vote_average.toFixed(1);
       t.genre =
         info.genres
           ?.map((g: { name: string }) => g.name)
           .slice(0, 2)
           .join(", ") || t.genre;
+      t.director =
+        t.director ||
+        info.credits?.crew?.find((p: { job: string }) => p.job === "Director")?.name ||
+        info.created_by?.map((p: { name: string }) => p.name).join(", ") ||
+        "";
       t.cast =
         t.cast ||
         info.credits?.cast
@@ -226,6 +276,8 @@ export async function scanLibrary(onStatus: (s: string) => void): Promise<Title[
           .join(", ") ||
         "";
       if (info.runtime) t.duration = `${Math.floor(info.runtime / 60)} h ${info.runtime % 60} min`;
+      if (info.number_of_seasons)
+        t.duration = `${info.number_of_seasons} temporada${info.number_of_seasons > 1 ? "s" : ""}`;
     } catch {
       /* TMDB opcional */
     }

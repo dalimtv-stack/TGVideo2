@@ -460,6 +460,9 @@
 .card-caption > span {
   font-size: 9px;
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--muted-foreground);
   margin-top: 5px;
 }
@@ -1094,4 +1097,29 @@
     transition: none !important;
     animation: none !important;
   }
+}
+
+.poster-fallback {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 16px 12px;
+  background: linear-gradient(160deg, var(--secondary), var(--background));
+  border: 1px solid var(--border);
+}
+.poster-fallback span {
+  font-weight: 750;
+  font-size: 14px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.poster-fallback small {
+  color: var(--muted-foreground);
+  font-size: 11px;
 }

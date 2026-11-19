@@ -195,7 +195,16 @@ export function TelegramConnect() {
             if (!(await m.testTmdb(tmdbKey.trim())))
               throw new Error("La clave de TMDB no es válida.");
             m.saveConfig({ tmdbKey: tmdbKey.trim() });
-            toast.success("TMDB conectado. Vuelve a escanear para actualizar carátulas.");
+            if (connected) {
+              const list = await m.enrichLibrary(
+                items.map((i) => ({ ...i })),
+                (st) => setBusy(st),
+              );
+              setLibrary(list);
+              toast.success(
+                `Carátulas actualizadas: ${list.filter((i) => i.image).length} de ${list.length}`,
+              );
+            } else toast.success("TMDB conectado.");
           });
         }}
       >

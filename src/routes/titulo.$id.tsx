@@ -167,7 +167,7 @@ function Detail() {
                     onClick={() => void play(ep)}
                   >
                     <span>
-                      <Play size={14} /> {ep.name}
+                      <Play size={14} /> <span className="truncate">{ep.name}</span>
                     </span>
                     <span>
                       {h?.is_completed

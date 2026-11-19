@@ -51,3 +51,23 @@ describe("tgstorage rules", () => {
   it("allows content at the profile age limit", () => expect(allowedAge(12, 12)).toBe(true));
   it("hides unclassified content", () => expect(allowedAge(null, 12)).toBe(false));
 });
+
+import { parseFileName } from "./tgstorage";
+describe("parseFileName", () => {
+  it("limpia película con año y calidad", () => {
+    expect(parseFileName("Dune.Parte.Dos.2024.1080p.WEB-DL.mkv")).toEqual({
+      title: "Dune Parte Dos",
+      year: 2024,
+      season: null,
+      episode: null,
+    });
+  });
+  it("detecta episodio S01E03", () => {
+    const r = parseFileName("The_Wire_S01E03_The_Buys.mkv");
+    expect([r.title, r.season, r.episode]).toEqual(["The Wire", 1, 3]);
+  });
+  it("detecta episodio 2x05", () => {
+    const r = parseFileName("Dark 2x05.mp4");
+    expect([r.title, r.season, r.episode]).toEqual(["Dark", 2, 5]);
+  });
+});

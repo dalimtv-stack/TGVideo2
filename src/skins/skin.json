@@ -1,1 +1,6 @@
-{"id":"cinema","name":"Cinematográfica","layouts":["cinema","grid"],"sections":["continue","movies","series"]}
+{
+  "id": "cinema",
+  "name": "Cinematográfica",
+  "layouts": ["cinema", "grid"],
+  "sections": ["continue", "movies", "series"]
+}

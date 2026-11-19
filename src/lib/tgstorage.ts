@@ -38,3 +38,30 @@ export const completedPlayback = (time: number, duration: number) =>
   duration > 0 && time / duration > 0.9;
 export const allowedAge = (rating: number | null, limit: number) =>
   rating !== null && rating <= limit;
+// Limpia un nombre de archivo y detecta año y episodio (S01E02 / 1x02).
+export function parseFileName(raw: string) {
+  let s = raw.replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[._]+/g, " ");
+  let season: number | null = null;
+  let episode: number | null = null;
+  const ep = /\bS(\d{1,2})\s?E(\d{1,3})\b|\b(\d{1,2})x(\d{2,3})\b/i.exec(s);
+  if (ep) {
+    season = Number(ep[1] ?? ep[3]);
+    episode = Number(ep[2] ?? ep[4]);
+    s = s.slice(0, ep.index);
+  }
+  let year: number | null = null;
+  const y = /[([]?\b(19\d{2}|20\d{2})\b[)\]]?/.exec(s);
+  if (y && y.index > 0) {
+    year = Number(y[1]);
+    s = s.slice(0, y.index);
+  }
+  s = s
+    .replace(
+      /\b(2160p|1080p|720p|480p|4k|uhd|hdr|x26[45]|h ?26[45]|hevc|bluray|brrip|web[- ]?dl|webrip|dvdrip|castellano|spanish|esp|dual|latino|aac|ac3|dts)\b.*$/i,
+      "",
+    )
+    .replace(/[-–\s]+$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return { title: s || raw, year, season, episode };
+}
